@@ -10,8 +10,8 @@ const ReturnType = usize;
 fn processInput(data: []const u8) InputType {
     const line_count = utils.count(u8, data, '\n');
 
-    var left = utils.allocator.alloc(u32, line_count) catch unreachable;
-    var right = utils.allocator.alloc(u32, line_count) catch unreachable;
+    var left = utils.alloc(u32, line_count);
+    var right = utils.alloc(u32, line_count);
 
     var iter = std.mem.splitScalar(u8, data, '\n');
     var i: usize = 0;

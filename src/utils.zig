@@ -6,7 +6,7 @@ pub const allocator = arena.allocator();
 
 pub fn splitLines(data: []const u8) [][]const u8 {
     const line_count = count(u8, data, '\n');
-    var split = allocator.alloc([]const u8, line_count);
+    var split = alloc([]const u8, line_count);
 
     var start: usize = 0;
     var i: usize = 0;
@@ -41,13 +41,12 @@ pub fn run(
     const part2_result = part2(processed_input);
     const part2_time = @as(f128, @floatFromInt(nanoTimestamp() - start_time)) / @as(f128, 10e5);
 
-    std.debug.print("{d}/{d}:\n- {d:.2}ms -> {}\n- {d:.2}ms -> {}\n", .{ year, day, part1_time, part1_result, part2_time, part2_result });
+    std.debug.print(switch (U) {
+        []const u8 => "{d}/{d}:\n- {d:.2}ms -> {s}\n- {d:.2}ms -> {s}\n",
+        else => "{d}/{d}:\n- {d:.2}ms -> {}\n- {d:.2}ms -> {}\n",
+    }, .{ year, day, part1_time, part1_result, part2_time, part2_result });
 
     arena.deinit();
-}
-
-pub fn parseInt(comptime T: type, buf: []const u8) T {
-    return std.fmt.parseInt(T, buf, 10) catch unreachable;
 }
 
 pub fn count(comptime T: type, haystack: []const T, needle: T) usize {
@@ -59,4 +58,13 @@ pub fn count(comptime T: type, haystack: []const T, needle: T) usize {
     }
 
     return total;
+}
+
+// Error handling? Never heard of him
+pub fn parseInt(comptime T: type, buf: []const u8) T {
+    return std.fmt.parseInt(T, buf, 10) catch unreachable;
+}
+
+pub fn alloc(comptime T: type, size: usize) []T {
+    return allocator.alloc(T, size) catch unreachable;
 }
