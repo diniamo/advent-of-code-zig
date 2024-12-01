@@ -31,20 +31,35 @@ pub fn run(
     comptime part2: fn (input: T) U,
 ) void {
     const input = @embedFile(std.fmt.comptimePrint("{d}/input/{d}.txt", .{ year, day }));
-    const processed_input = process_input(input);
+
+    const ns_per_ms: f64 = std.time.ns_per_ms;
 
     var start_time = nanoTimestamp();
+    const processed_input = process_input(input);
+    const input_time = @as(f64, @floatFromInt(nanoTimestamp() - start_time)) / ns_per_ms;
+
+    start_time = nanoTimestamp();
     const part1_result = part1(processed_input);
-    const part1_time: f128 = @as(f128, @floatFromInt(nanoTimestamp() - start_time)) / @as(f128, 10e5);
+    const part1_time = @as(f64, @floatFromInt(nanoTimestamp() - start_time)) / ns_per_ms;
 
     start_time = nanoTimestamp();
     const part2_result = part2(processed_input);
-    const part2_time = @as(f128, @floatFromInt(nanoTimestamp() - start_time)) / @as(f128, 10e5);
+    const part2_time = @as(f64, @floatFromInt(nanoTimestamp() - start_time)) / ns_per_ms;
 
     std.debug.print(switch (U) {
-        []const u8 => "{d}/{d}:\n- {d:.2}ms -> {s}\n- {d:.2}ms -> {s}\n",
-        else => "{d}/{d}:\n- {d:.2}ms -> {}\n- {d:.2}ms -> {}\n",
-    }, .{ year, day, part1_time, part1_result, part2_time, part2_result });
+        []const u8 => "{d}/{d}:\n- Input: {d:.2}ms\n- Part 1: {s} ({d:.2}ms / {d:.2}ms)\n- Part 2: {s} ({d:.2}ms / {d:.2}ms)\n",
+        else => "{d}/{d}:\n- Input: {d:.2}ms\n- Part 1: {} ({d:.2}ms / {d:.2}ms)\n- Part 2: {} ({d:.2}ms / {d:.2}ms)\n",
+    }, .{
+        year,
+        day,
+        input_time,
+        part1_result,
+        part1_time,
+        input_time + part1_time,
+        part2_result,
+        part2_time,
+        input_time + part2_time,
+    });
 
     arena.deinit();
 }
