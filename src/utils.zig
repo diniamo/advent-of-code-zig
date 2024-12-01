@@ -1,12 +1,12 @@
 const std = @import("std");
 const nanoTimestamp = std.time.nanoTimestamp;
 
-var gpa_impl = std.heap.GeneralPurposeAllocator(.{}){};
-pub const gpa = gpa_impl.allocator();
+var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+pub const allocator = arena.allocator();
 
-fn splitLines(comptime data: []const u8) [][]const u8 {
-    const line_count = std.mem.count(u8, data, "\n");
-    var split: [line_count][]const u8 = undefined;
+pub fn splitLines(data: []const u8) [][]const u8 {
+    const line_count = count(u8, data, '\n');
+    var split = allocator.alloc([]const u8, line_count);
 
     var start: usize = 0;
     var i: usize = 0;
@@ -42,6 +42,8 @@ pub fn run(
     const part2_time = @as(f128, @floatFromInt(nanoTimestamp() - start_time)) / @as(f128, 10e5);
 
     std.debug.print("{d}/{d}:\n- {d:.2}ms -> {}\n- {d:.2}ms -> {}\n", .{ year, day, part1_time, part1_result, part2_time, part2_result });
+
+    arena.deinit();
 }
 
 pub fn parseInt(comptime T: type, buf: []const u8) T {

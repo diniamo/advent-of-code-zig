@@ -7,13 +7,13 @@ const InputType = struct {
 };
 const ReturnType = usize;
 
-fn processInput(input: []const u8) InputType {
-    const line_count = utils.count(u8, input, '\n');
+fn processInput(data: []const u8) InputType {
+    const line_count = utils.count(u8, data, '\n');
 
-    var left = utils.gpa.alloc(u32, line_count) catch unreachable;
-    var right = utils.gpa.alloc(u32, line_count) catch unreachable;
+    var left = utils.allocator.alloc(u32, line_count) catch unreachable;
+    var right = utils.allocator.alloc(u32, line_count) catch unreachable;
 
-    var iter = std.mem.splitScalar(u8, input, '\n');
+    var iter = std.mem.splitScalar(u8, data, '\n');
     var i: usize = 0;
     while (iter.next()) |line| : (i += 1) {
         if (line.len == 0) break;
@@ -34,7 +34,7 @@ fn part1(input: InputType) ReturnType {
     std.mem.sort(u32, input.left, {}, comptime std.sort.asc(u32));
     std.mem.sort(u32, input.right, {}, comptime std.sort.asc(u32));
 
-    var sum: u64 = 0;
+    var sum: usize = 0;
     for (input.left, input.right) |l, r| {
         sum += @abs(@as(i64, l) - @as(i64, r));
     }
