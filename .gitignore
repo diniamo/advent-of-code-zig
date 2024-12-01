@@ -2,3 +2,4 @@
 /.zig-cache
 /token.txt
 /input
+/src/*/input
