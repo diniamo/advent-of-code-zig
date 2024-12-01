@@ -73,10 +73,9 @@ fn ensureInput(allocator: std.mem.Allocator, root_dir: std.fs.Dir, year: u12, da
 }
 
 pub fn build(b: *std.Build) !void {
-    const fast = b.option(bool, "fast", "Optimize for speed") orelse false;
-
     const root_dir = try std.fs.openDirAbsolute(b.path(".").getPath(b), .{});
 
+    const fast = b.option(bool, "fast", "Optimize for speed") orelse false;
     const year = b.option(u12, "year", "The year to run the day in") orelse findHighestEntry(u12, root_dir, "src", std.fs.File.Kind.directory) catch {
         try b.default_step.addError("Could't detect year, please provide one to complete initialization logic", .{});
         return;
@@ -85,12 +84,36 @@ pub fn build(b: *std.Build) !void {
         try b.default_step.addError("Could't detect day, please provide one to complete initialization logic", .{});
         return;
     };
-    const source_path = try ensureSource(b.allocator, root_dir, year, day);
+
+    const root_source_file = b.path(try ensureSource(b.allocator, root_dir, year, day));
     try ensureInput(b.allocator, root_dir, year, day);
 
-    const exe = b.addExecutable(.{ .name = try std.fmt.allocPrint(b.allocator, "{d}-{d}", .{ year, day }), .root_source_file = b.path(source_path), .target = b.host, .optimize = if (fast) .ReleaseFast else .Debug });
-    exe.root_module.addAnonymousImport("utils", .{ .root_source_file = b.path("src/utils.zig") });
+    const target = b.host;
+    const optimize: std.builtin.OptimizeMode = if (fast) .ReleaseFast else .Debug;
+    const utils = .{ .root_source_file = b.path("src/utils.zig") };
+
+    const exe = b.addExecutable(.{
+        .name = try std.fmt.allocPrint(b.allocator, "{d}-{d}", .{ year, day }),
+        .root_source_file = root_source_file,
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addAnonymousImport("utils", utils);
+
+    const unit_test = b.addTest(.{
+        .root_source_file = root_source_file,
+        .target = target,
+        .optimize = optimize,
+    });
+    unit_test.root_module.addAnonymousImport("utils", utils);
+
+    const check_step = b.step("check", "Check for compilation errors");
+    check_step.dependOn(&exe.step);
+
+    const test_step = b.step("test", "Run tests for the day");
+    test_step.dependOn(&unit_test.step);
 
     const run_exe = b.addRunArtifact(exe);
-    b.default_step.dependOn(&run_exe.step);
+    const run_step = b.step("run", "Run the day");
+    run_step.dependOn(&run_exe.step);
 }
