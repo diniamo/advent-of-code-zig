@@ -110,8 +110,9 @@ pub fn build(b: *std.Build) !void {
     const check_step = b.step("check", "Check for compilation errors");
     check_step.dependOn(&exe.step);
 
+    const run_test = b.addRunArtifact(unit_test);
     const test_step = b.step("test", "Run tests for the day");
-    test_step.dependOn(&unit_test.step);
+    test_step.dependOn(&run_test.step);
 
     const run_exe = b.addRunArtifact(exe);
     const run_step = b.step("run", "Run the day");
