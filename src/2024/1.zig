@@ -14,11 +14,8 @@ fn processInput(data: []const u8) InputType {
     var right = utils.alloc(u32, line_count);
 
     var iter = std.mem.splitScalar(u8, data, '\n');
-    var i: usize = 0;
-    while (iter.next()) |line| : (i += 1) {
-        if (line.len == 0) break;
-
-        var split = std.mem.splitSequence(u8, line, "   ");
+    for (0..line_count) |i| {
+        var split = std.mem.splitSequence(u8, iter.next() orelse unreachable, "   ");
 
         left[i] = utils.parseInt(u32, split.next() orelse unreachable);
         right[i] = utils.parseInt(u32, split.next() orelse unreachable);
